@@ -28,4 +28,4 @@ Após a instalação, execute o comando abaixo no terminal para iniciar a automa
 
 ## Autores
 
-- *[@euisaquevenancio](https://euisaquevenancio.github.io/portfolio/) - 27/09/2026*
+- *[@euisaquevenancio](https://euisaquevenancio.github.io/portfolio/) - 04/10/2026*
