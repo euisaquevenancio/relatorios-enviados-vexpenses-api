@@ -44,19 +44,16 @@ async function main() {
         contadorRelatorios++;
         if (contadorRelatorios == 1) console.log();
 
-        let CENTRO_CUSTOS = "VERIFICAR";
-        if (dataDespesas.data.expenses.data[0].costs_center.data.integration_id != null) CENTRO_CUSTOS = dataDespesas.data.expenses.data[0].costs_center.data.integration_id;
-
+        const CENTRO_CUSTOS = dataDespesas.data.expenses.data[0].costs_center.data.name.slice(0, 5);
         const MOEDA = dataDespesas.data.expenses.data[0].original_currency_iso;
         const NOME_SOLICITANTE = dataDespesas.data.user.data.name;
+        
         let tipoRelatorio = "VERIFICAR";
-        if (dataDespesas.data.payment_method.data.description != undefined) {
-            tipoRelatorio = dataDespesas.data.payment_method.data.description.toUpperCase();
-        }
-
-        if (tipoRelatorio == "REEMBOLSO GASTOS EVENTUAIS") {
+        if (dataDespesas.data.expenses.data[0].payment_method_id == 639919 || dataDespesas.data.expenses.data[0].payment_method_id == 659335) {
             tipoRelatorio = "REEMBOLSO";
-        } else if (tipoRelatorio == "PRESTAÇÃO DE CONTAS DO ADIANTAMENTO" || tipoRelatorio == "PRESTAÇÃO DE CONTAS ADIANTAMENTO - MOEDA ESTRANGEIRA") {
+        } else if (dataDespesas.data.expenses.data[0].payment_method_id == 640034) {
+            tipoRelatorio = "ADIANTAMENTO";
+        } else if (dataDespesas.data.expenses.data[0].payment_method_id == 652193 || dataDespesas.data.expenses.data[0].payment_method_id == 654665) {
             tipoRelatorio = "PRESTAÇÃO DE CONTAS";
         }
 
@@ -66,10 +63,13 @@ async function main() {
         let valorTotalDespesas = 0;
 
         for (let j = 0; j < QUANTIDADE_DESPESAS; j++) {
+            if (dataDespesas[j].expense_type.data.description.toUpperCase() == "DEVOLUÇÃO DE ADIANTAMENTO") {
+                dataVencimento = dataDespesas[j].created_at.substring(0, 10).replaceAll("-", "/").split("/").reverse().join("/");
+            }
             valorTotalDespesas += dataDespesas[j].value;
         }
 
-        let mantenedora = parseInt(dataDespesas[0].apportionment.data[0].integration_id[0]);
+        let mantenedora = parseInt(dataDespesas[0].apportionment.data[0].description[0]);
         if (mantenedora == 1) {
             mantenedora = "1 ABEC";
         } else if (mantenedora == 2) {
@@ -101,13 +101,12 @@ async function main() {
             diferencaDatasHojeEUltimaAtualizacao: DIFERENCA_HOJE_ULTIMA_ATUALIZACAO,
             centroCustos: CENTRO_CUSTOS
         });
+
+        console.log(`✅ #${(contadorRelatorios)} | ${dataRelatoriosEnviados[i].id} | ${mantenedora} | ${NOME_SOLICITANTE} | ${valorTotalDespesas} | ${dataCriacaoRelatorio} | ${dataAtualizacao} | ${tipoRelatorio} | ${CENTRO_CUSTOS}`);
     }
 
     if (contadorRelatorios > 0) {
-        console.log(`✅ Novos relatórios aprovados: ${contadorRelatorios}\n`);
-        for (let i = 0; i < relatorios.length; i++) {
-            console.log(`✅ #${(i+1)} | ${relatorios[i].numeroRelatorio} | ${relatorios[i].mantenedora} | ${relatorios[i].nomeSolicitante} | ${relatorios[i].valorRelatorio} | ${relatorios[i].dataCriacaoRelatorio} | ${relatorios[i].dataAtualizacao} | ${relatorios[i].tipoRelatorio} | ${relatorios[i].centroCustos}`);
-        }
+        console.log(`\n✅ Novos relatórios aprovados: ${contadorRelatorios}`);
     } else {
         console.log(`\n✅ Não há novos relatórios aprovados: ${contadorRelatorios}`);
     }
